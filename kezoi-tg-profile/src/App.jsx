@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, Map, MessageCircle, Phone, Mail, Instagram } from 'lucide-react';
+import { Globe, Map, MessageCircle, Phone, Mail } from 'lucide-react';
 
 function App() {
   return (
@@ -56,9 +56,6 @@ function App() {
           <div className="social-row">
             <a href="#" className="social-icon" aria-label="Email Us">
               <Mail size={24} />
-            </a>
-            <a href="#" className="social-icon" aria-label="Follow on Instagram">
-              <Instagram size={24} />
             </a>
           </div>
         </div>
