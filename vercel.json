@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/TG(?:%20| )0001/assets/(.*)",
-      "destination": "/assets/$1"
+      "source": "/TG 0001/assets/:match*",
+      "destination": "/assets/:match*"
+    },
+    {
+      "source": "/TG%200001/assets/:match*",
+      "destination": "/assets/:match*"
     },
     {
       "source": "/(.*)",
