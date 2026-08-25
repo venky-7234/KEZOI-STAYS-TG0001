@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/TG(?:%20| )0001/assets/(.*)",
+      "destination": "/assets/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
