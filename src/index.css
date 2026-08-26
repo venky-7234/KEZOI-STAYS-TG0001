@@ -1302,6 +1302,10 @@ a {
   .about-heading {
     font-size: 2rem;
   }
+  
+  .amenities-tabs-wrapper {
+    justify-content: flex-start;
+  }
 
   .amenities-grid {
     grid-template-columns: 1fr;
