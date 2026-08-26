@@ -1,11 +1,12 @@
 import React from 'react';
+import logo from '../assets/kezoi_logo-01.svg';
 
 export default function MicrositeFooter() {
   return (
     <footer className="footer-section">
       <div className="container footer-content">
         <div className="footer-brand">
-          <img src="/logo.png" alt="Kezoi Stays" className="footer-logo-img" />
+          <img src={logo} alt="Kezoi Stays" className="footer-logo-img" />
           <p className="footer-tagline">Premium stays. Effortless living.</p>
         </div>
         <div className="footer-links">

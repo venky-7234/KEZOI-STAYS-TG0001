@@ -2,13 +2,13 @@
 
 :root {
   /* Colors */
-  --color-charcoal: #1a1a1a;
-  --color-charcoal-light: #2c2c2c;
-  --color-charcoal-transparent: rgba(26, 26, 26, 0.85);
+  --color-charcoal: #0f3d34;
+  --color-charcoal-light: #16584a;
+  --color-charcoal-transparent: rgba(15, 61, 52, 0.85);
   --color-ivory: #fdfbf7;
   --color-ivory-dark: #f0ede6;
-  --color-gold: #c5a059;
-  --color-gold-hover: #dfb96e;
+  --color-gold: #b69148;
+  --color-gold-hover: #d3a956;
 
   /* Typography */
   --font-serif: 'Playfair Display', serif;
@@ -120,10 +120,17 @@ a {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  position: relative;
+  width: 200px;
+  height: 40px;
 }
 
 .logo-img {
-  height: 32px;
+  position: absolute;
+  top: 50%;
+  left: -20px;
+  transform: translateY(-50%);
+  height: 200px;
   width: auto;
   object-fit: contain;
 }
@@ -900,10 +907,11 @@ a {
 }
 
 .footer-logo-img {
-  height: 48px;
+  height: 250px;
   width: auto;
   object-fit: contain;
-  margin-bottom: 1rem;
+  margin-bottom: -2rem;
+  margin-top: -2rem;
 }
 
 .footer-tagline {
