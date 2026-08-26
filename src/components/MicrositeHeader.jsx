@@ -46,16 +46,22 @@ export default function MicrositeHeader({ propertyCode, isScrolled }) {
             </button>
             
             {menuOpen && (
-              <div 
-                className="dropdown-menu animate-fade-in"
-                style={{
-                  backgroundImage: `url(${watermarkIcon})`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'center',
-                  backgroundSize: '80%',
-                  backgroundBlendMode: 'soft-light'
-                }}
-              >
+              <div className="dropdown-menu animate-fade-in" style={{ position: 'relative' }}>
+                <img 
+                  src={watermarkIcon} 
+                  alt="" 
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '50%',
+                    opacity: 0.1,
+                    pointerEvents: 'none',
+                    zIndex: 0
+                  }}
+                />
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
                 <a 
                   href="https://instagram.com/kezoistays" 
                   target="_blank" 
@@ -80,6 +86,7 @@ export default function MicrositeHeader({ propertyCode, isScrolled }) {
                     {link.label}
                   </button>
                 ))}
+              </div>
               </div>
             )}
           </div>
