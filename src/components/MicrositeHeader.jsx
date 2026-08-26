@@ -70,7 +70,6 @@ export default function MicrositeHeader({ propertyCode, isScrolled }) {
                   </svg>
                   Instagram
                 </a>
-                <div style={{ height: '1px', background: 'rgba(26, 26, 26, 0.1)' }}></div>
                 {navLinks.map((link) => (
                   <button 
                     key={link.id} 
