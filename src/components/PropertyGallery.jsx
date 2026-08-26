@@ -36,23 +36,36 @@ export default function PropertyGallery({ rooms }) {
 
   const onTouchStart = (e) => {
     setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    });
   };
 
   const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    });
   };
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+    
+    const distanceX = touchStart.x - touchEnd.x;
+    const distanceY = touchStart.y - touchEnd.y;
+    
+    // Only trigger horizontal swipe if X distance is greater than Y distance
+    // This allows native vertical scrolling for the description text
+    if (Math.abs(distanceX) > Math.abs(distanceY)) {
+      const isLeftSwipe = distanceX > minSwipeDistance;
+      const isRightSwipe = distanceX < -minSwipeDistance;
 
-    if (isLeftSwipe) {
-      nextImage();
-    } else if (isRightSwipe) {
-      prevImage();
+      if (isLeftSwipe) {
+        nextImage();
+      } else if (isRightSwipe) {
+        prevImage();
+      }
     }
   };
 
