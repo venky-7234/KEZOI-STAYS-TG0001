@@ -702,6 +702,11 @@ a {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 0.5rem;
+  scrollbar-width: none;
+}
+
+.amenities-tabs-wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 .amenities-tabs {
@@ -710,6 +715,7 @@ a {
   background: rgba(253, 251, 247, 0.03);
   padding: 0.5rem;
   border-radius: 50px;
+  width: max-content;
 }
 
 .amenity-tab-btn {
