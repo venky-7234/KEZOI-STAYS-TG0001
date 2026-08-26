@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
@@ -113,7 +114,7 @@ export default function PropertyGallery({ rooms }) {
         </div>
       </div>
 
-      {lightboxOpen && (
+      {lightboxOpen && createPortal(
         <div className="lightbox" onClick={closeLightbox}>
           <button className="lightbox-close" onClick={closeLightbox}>
             <X size={32} strokeWidth={1.5} />
@@ -156,7 +157,8 @@ export default function PropertyGallery({ rooms }) {
               <ChevronRight size={32} strokeWidth={1.5} />
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
