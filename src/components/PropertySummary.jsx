@@ -1,9 +1,12 @@
 import React from 'react';
 import { Users, Bed, Bath, Coffee, Wifi, Car } from 'lucide-react';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function PropertySummary({ property }) {
+  const { ref, isVisible } = useScrollReveal();
+
   return (
-    <section className="property-summary-section">
+    <section ref={ref} className={`property-summary-section ${isVisible ? 'animate-fade-up' : 'pre-animate'}`}>
       <div className="container">
         <div className="summary-strip">
           <div className="summary-item">

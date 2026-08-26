@@ -10,15 +10,13 @@ export default function GuestSupport() {
           <p className="support-desc">Our dedicated concierge is available 24/7 to ensure your stay is flawless.</p>
           
           <div className="support-actions">
-            <button className="btn btn-primary">
+            <a href="https://wa.me/919052688188" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
               <MessageCircle size={18} /> WhatsApp Kezoi
-            </button>
-            <button className="btn btn-outline">
+            </a>
+            <a href="tel:+919052688188" className="btn btn-outline">
               <Phone size={18} /> Call Support
-            </button>
-            <button className="btn btn-outline support-issue-btn">
-              <AlertCircle size={18} /> Report an Issue
-            </button>
+            </a>
+
           </div>
         </div>
       </div>

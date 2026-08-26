@@ -1,33 +1,41 @@
 import React from 'react';
 import { MapPin, Navigation } from 'lucide-react';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function LocationSection({ location, nearbyPlaces }) {
+  const { ref, isVisible } = useScrollReveal();
+
   return (
-    <section className="location-section">
+    <section ref={ref} className={`location-section ${isVisible ? 'animate-fade-up' : 'pre-animate'}`}>
       <div className="container location-grid">
         <div className="map-wrapper">
-          <img 
-            src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=80" 
-            alt={`Map view of ${location}`} 
-            className="map-img" 
-          />
+          <iframe 
+            src="https://maps.google.com/maps?q=Vishnu+Vistara,+Madhapur,+Hyderabad&t=&z=15&ie=UTF8&iwloc=&output=embed"
+            width="100%" 
+            height="100%" 
+            style={{ border: 0, pointerEvents: 'auto' }} 
+            allowFullScreen="" 
+            loading="lazy" 
+            referrerPolicy="no-referrer-when-downgrade"
+            title={`Map view of ${location}`}
+          ></iframe>
         </div>
         
         <div className="location-content">
           <h2 className="location-title">{location}</h2>
           <p className="location-desc">
-            Situated in one of the city's most exclusive neighborhoods, this property 
-            offers a serene escape just minutes away from major corporate hubs, 
-            fine dining, and premium shopping destinations.
+            Nestled in the vibrant heart of Madhapur, this property offers a premium stay just 
+            steps away from Hyderabad's bustling IT corridors, acclaimed dining spots, and 
+            top-tier entertainment hubs like Durgam Cheruvu.
           </p>
           
           <div className="location-actions">
-            <button className="btn btn-outline btn-small">
+            <a href="https://maps.app.goo.gl/K815NgUL4tebGGoJ6?g_st=aw" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-small">
               <MapPin size={16} /> Open in Maps
-            </button>
-            <button className="btn btn-outline btn-small">
+            </a>
+            <a href="https://maps.app.goo.gl/K815NgUL4tebGGoJ6?g_st=aw" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-small">
               <Navigation size={16} /> Get Directions
-            </button>
+            </a>
           </div>
 
           <h3 className="nearby-title">Nearby Places</h3>

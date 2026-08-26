@@ -19,10 +19,10 @@ export default function PropertyHero({ property }) {
         </p>
         <div className="hero-actions animate-fade-in delay-2">
           <button className="btn btn-primary">Book This Stay</button>
-          <button className="btn btn-outline">
+          <a href="https://maps.app.goo.gl/K815NgUL4tebGGoJ6?g_st=aw" target="_blank" rel="noopener noreferrer" className="btn btn-outline">
             <MapPin size={18} />
             View Location
-          </button>
+          </a>
         </div>
       </div>
     </section>

@@ -1,15 +1,19 @@
 import React from 'react';
+import { useScrollReveal } from '../hooks/useScrollReveal';
+import StaggeredText from './StaggeredText';
 
 export default function AboutProperty({ description }) {
+  const { ref, isVisible } = useScrollReveal();
+
   return (
-    <section className="about-section">
+    <section ref={ref} className={`about-section ${isVisible ? 'animate-fade-up' : 'pre-animate'}`}>
       <div className="container about-grid">
         <div>
-          <h2 className="about-heading animate-fade-up">A Stay Designed Around Comfort.</h2>
+          <h2 className="about-heading">A Stay Designed Around Comfort.</h2>
         </div>
-        <div className="about-text animate-fade-up delay-1">
+        <div className="about-text delay-1">
           {description.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
+            <StaggeredText key={index} text={paragraph} baseDelay={0.2} />
           ))}
         </div>
       </div>
