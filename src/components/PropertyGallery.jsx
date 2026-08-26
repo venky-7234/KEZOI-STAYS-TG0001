@@ -5,6 +5,8 @@ import { useScrollReveal } from '../hooks/useScrollReveal';
 export default function PropertyGallery({ rooms }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   const { ref, isVisible } = useScrollReveal();
 
   if (!rooms || rooms.length === 0) return null;
@@ -21,13 +23,37 @@ export default function PropertyGallery({ rooms }) {
   };
 
   const nextImage = (e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     setCurrentImageIndex((prev) => (prev === rooms.length - 1 ? 0 : prev + 1));
   };
 
   const prevImage = (e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     setCurrentImageIndex((prev) => (prev === 0 ? rooms.length - 1 : prev - 1));
+  };
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextImage();
+    } else if (isRightSwipe) {
+      prevImage();
+    }
   };
 
   const currentRoom = rooms[currentImageIndex];
@@ -80,7 +106,13 @@ export default function PropertyGallery({ rooms }) {
             <X size={32} strokeWidth={1.5} />
           </button>
           
-          <div className="lightbox-content-wrapper" onClick={(e) => e.stopPropagation()}>
+          <div 
+            className="lightbox-content-wrapper" 
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             <button className="lightbox-nav lightbox-prev" onClick={prevImage}>
               <ChevronLeft size={32} strokeWidth={1.5} />
             </button>
