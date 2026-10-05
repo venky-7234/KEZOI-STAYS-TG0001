@@ -9,24 +9,26 @@ import LocationSection from './components/LocationSection';
 import CheckInInfo from './components/CheckInInfo';
 import HouseRules from './components/HouseRules';
 import GuestSupport from './components/GuestSupport';
-import BookingCTA from './components/BookingCTA';
 import MicrositeFooter from './components/MicrositeFooter';
-import { MessageCircle } from 'lucide-react';
+import BookingModal from './components/BookingModal';
+import { PhoneIcon, WhatsAppIcon } from './components/BrandIcons';
 import { useScrollReveal } from './hooks/useScrollReveal';
 
 const property = {
   code: "TG-0001",
-  name: "The Sapphire Residence",
-  location: "Madhapur, Hyderabad",
-  propertyType: "Premium Apartment",
+  name: "OUR RESIDENCE",
+  location: "Manikonda, Hyderabad",
+  mapsLink: "https://maps.app.goo.gl/yzzJ91W1RFjDeWfi9",
+  embedMapUrl: "https://maps.google.com/maps?q=17.4048101,78.3643339&t=&z=16&ie=UTF8&iwloc=&output=embed",
+  propertyType: "Premium 3BHK Apartment",
   guests: 6,
   bedrooms: 3,
   bathrooms: 3,
-  beds: 4,
+  beds: 3,
   checkIn: "2:00 PM",
   checkOut: "11:00 AM",
   description: [
-    "Experience unparalleled luxury in the heart of Hyderabad. The Sapphire Residence offers a seamless blend of elegant design, modern amenities, and personalized service.",
+    "Experience unparalleled luxury in the heart of Hyderabad. Our residence offers a seamless blend of elegant design, modern amenities, and personalized service.",
     "Whether you are traveling for business or leisure, our meticulously curated spaces ensure that every moment of your stay is effortlessly relaxing and entirely unforgettable."
   ],
   images: [
@@ -54,12 +56,13 @@ const property = {
     { title: "View from Balcony", image: "https://images.unsplash.com/photo-1599809275671-b5942cabc7a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=80", features: ["Panoramic views", "Outdoor seating for 4", "Ambient evening lighting"] }
   ],
   nearbyPlaces: [
-    { name: "Mindspace IT Park", time: "5 min" },
-    { name: "HITEC City Metro Station", time: "5 min" },
-    { name: "Medicover Hospitals", time: "5 min" },
-    { name: "Inorbit Mall", time: "10 min" },
-    { name: "Durgam Cheruvu", time: "10 min" },
-    { name: "Rajiv Gandhi Airport", time: "40 min" }
+    { name: "Khajaguda Hills", time: "2 min" },
+    { name: "Financial District / Wipro Circle", time: "5 min" },
+    { name: "Continental Hospital", time: "8 min" },
+    { name: "Gachibowli Junction", time: "10 min" },
+    { name: "Raheja Mindspace & HITEC City", time: "12 min" },
+    { name: "Inorbit Mall & Knowledge City", time: "15 min" },
+    { name: "Rajiv Gandhi International Airport (ORR)", time: "30 min" }
   ],
   rules: [
     "No smoking inside the property",
@@ -72,6 +75,7 @@ const property = {
 
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
   const { ref: policiesRef, isVisible: policiesVisible } = useScrollReveal();
 
   useEffect(() => {
@@ -83,49 +87,74 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleOpenBooking = () => {
+    setIsBookingOpen(true);
+  };
+
+  const handleCloseBooking = () => {
+    setIsBookingOpen(false);
+  };
+
   return (
     <div className="app-container">
-      <MicrositeHeader propertyCode={property.code} isScrolled={isScrolled} />
-      
+      <MicrositeHeader propertyCode={property.code} isScrolled={isScrolled} onOpenBooking={handleOpenBooking} />
+
       <div id="overview">
-        <PropertyHero property={property} />
+        <PropertyHero property={property} onOpenBooking={handleOpenBooking} />
         <PropertySummary property={property} />
       </div>
-      
+
       <div id="about">
-        <AboutProperty description={property.description} />
+        <AboutProperty description={property.description} onOpenBooking={handleOpenBooking} />
       </div>
-      
+
       <div id="gallery">
-        <PropertyGallery rooms={property.rooms} />
+        <PropertyGallery rooms={property.rooms} onOpenBooking={handleOpenBooking} />
       </div>
-      
+
       <div id="amenities">
-        <AmenitiesSection amenities={property.amenities} />
+        <AmenitiesSection amenities={property.amenities} onOpenBooking={handleOpenBooking} />
       </div>
-      
+
       <div id="location">
-        <LocationSection location={property.location} nearbyPlaces={property.nearbyPlaces} />
+        <LocationSection 
+          location={property.location} 
+          nearbyPlaces={property.nearbyPlaces} 
+          mapsLink={property.mapsLink}
+          embedMapUrl={property.embedMapUrl}
+          onOpenBooking={handleOpenBooking}
+        />
       </div>
-      
-      <section 
-        id="policies" 
-        className={`policies-section ${policiesVisible ? 'animate-fade-up' : 'pre-animate'}`} 
+
+      <section
+        id="policies"
+        className={`policies-section ${policiesVisible ? 'animate-fade-up' : 'pre-animate'}`}
         ref={policiesRef}
       >
         <div className="container policies-grid">
-          <CheckInInfo property={property} />
+          <CheckInInfo property={property} onOpenBooking={handleOpenBooking} />
           <HouseRules rules={property.rules} />
         </div>
       </section>
 
       <GuestSupport />
-      <BookingCTA />
       <MicrositeFooter />
-      
+
+      {/* Guest Booking Application Modal */}
+      <BookingModal 
+        isOpen={isBookingOpen} 
+        onClose={handleCloseBooking} 
+        property={property} 
+      />
+
       {/* Floating Action WhatsApp */}
       <a href="https://wa.me/919052688188" target="_blank" rel="noopener noreferrer" className="floating-whatsapp" aria-label="WhatsApp Support">
-        <MessageCircle size={28} />
+        <WhatsAppIcon size={30} />
+      </a>
+
+      {/* Floating Action Call */}
+      <a href="tel:+919052688188" className="floating-call" aria-label="Call Kezoi Stays">
+        <PhoneIcon size={28} />
       </a>
     </div>
   );

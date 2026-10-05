@@ -12,7 +12,8 @@
   "dependencies": {
     "lucide-react": "^1.34.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-phone-number-input": "^3.4.18"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",

@@ -2,7 +2,7 @@ import React from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import StaggeredText from './StaggeredText';
 
-export default function AboutProperty({ description }) {
+export default function AboutProperty({ description, onOpenBooking }) {
   const { ref, isVisible } = useScrollReveal();
 
   return (

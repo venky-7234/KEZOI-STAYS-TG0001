@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
-export default function PropertyGallery({ rooms }) {
+export default function PropertyGallery({ rooms, onOpenBooking }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
@@ -150,6 +150,15 @@ export default function PropertyGallery({ rooms }) {
                     </li>
                   ))}
                 </ul>
+                <div style={{ marginTop: '1.25rem' }}>
+                  <button 
+                    className="btn btn-primary btn-small"
+                    onClick={() => { closeLightbox(); onOpenBooking(); }}
+                    style={{ width: '100%' }}
+                  >
+                    Book OUR RESIDENCE
+                  </button>
+                </div>
               </div>
             </div>
             

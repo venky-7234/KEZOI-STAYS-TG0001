@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import logo from '../assets/kezoi_logo-01.svg';
 import watermarkIcon from '../assets/kezoi_icon-02.svg';
+import { InstagramIcon } from './BrandIcons';
 
-export default function MicrositeHeader({ propertyCode, isScrolled }) {
+export default function MicrositeHeader({ propertyCode, isScrolled, onOpenBooking }) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+
+    document.addEventListener('keydown', closeOnEscape);
+    if (menuOpen && window.matchMedia('(max-width: 768px)').matches) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
@@ -34,19 +51,27 @@ export default function MicrositeHeader({ propertyCode, isScrolled }) {
           <img src={logo} alt="Kezoi Stays" className="logo-img" />
         </div>
         <div className="header-actions">
-          <button className="btn btn-primary btn-small desktop-only">Book Now</button>
+          <button className="btn btn-primary btn-small desktop-only" onClick={onOpenBooking}>Book Now</button>
           
           <div className="header-dropdown" style={{ position: 'relative' }}>
             <button 
               className="menu-toggle" 
-              aria-label="Menu"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              aria-controls="site-navigation"
               onClick={() => setMenuOpen(!menuOpen)}
             >
               {menuOpen ? <X size={24} strokeWidth={1.5} /> : <Menu size={24} strokeWidth={1.5} />}
             </button>
             
-            {menuOpen && (
-              <div className="dropdown-menu animate-fade-in">
+              <div
+                id="site-navigation"
+                className={`dropdown-menu ${menuOpen ? 'is-open' : ''}`}
+                aria-hidden={!menuOpen}
+              >
+                <button className="mobile-menu-close" type="button" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
+                  <X size={30} strokeWidth={1.5} />
+                </button>
                 <img 
                   src={watermarkIcon} 
                   alt="" 
@@ -62,6 +87,13 @@ export default function MicrositeHeader({ propertyCode, isScrolled }) {
                   }}
                 />
                 <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => { onOpenBooking(); setMenuOpen(false); }}
+                    style={{ backgroundColor: 'var(--color-gold)', color: '#0f3d34', fontWeight: 'bold' }}
+                  >
+                    ✨ Book Now
+                  </button>
                   <a 
                     href="https://instagram.com/kezoistays" 
                     target="_blank" 
@@ -69,11 +101,7 @@ export default function MicrositeHeader({ propertyCode, isScrolled }) {
                     className="dropdown-item"
                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-charcoal)' }}
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                    </svg>
+                    <InstagramIcon size={18} />
                     Instagram
                   </a>
                   {navLinks.map((link) => (
@@ -88,7 +116,6 @@ export default function MicrositeHeader({ propertyCode, isScrolled }) {
                   ))}
                 </div>
               </div>
-            )}
           </div>
         </div>
       </div>

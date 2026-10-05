@@ -1,5 +1,6 @@
 import React from 'react';
-import { MessageCircle, Phone, AlertCircle } from 'lucide-react';
+import { Phone } from 'lucide-react';
+import { WhatsAppIcon } from './BrandIcons';
 
 export default function GuestSupport() {
   return (
@@ -11,7 +12,7 @@ export default function GuestSupport() {
           
           <div className="support-actions">
             <a href="https://wa.me/919052688188" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-              <MessageCircle size={18} /> WhatsApp Kezoi
+              <WhatsAppIcon size={18} /> WhatsApp Kezoi
             </a>
             <a href="tel:+919052688188" className="btn btn-outline">
               <Phone size={18} /> Call Support

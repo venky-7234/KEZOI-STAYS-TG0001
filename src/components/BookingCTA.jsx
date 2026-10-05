@@ -1,14 +1,13 @@
 import React from 'react';
 
-export default function BookingCTA() {
+export default function BookingCTA({ onOpenBooking }) {
   return (
     <section className="cta-section">
       <div className="container cta-content animate-fade-up">
-        <h2 className="cta-title">Loved Your Stay?</h2>
-        <p className="cta-desc">Book your next Kezoi stay directly with us for the best experience.</p>
+        <h2 className="cta-title">Make OUR RESIDENCE yours for a while</h2>
+        <p className="cta-desc">Choose your dates and send our team a reservation request. You won’t be charged today.</p>
         <div className="cta-actions">
-          <button className="btn btn-primary">Book This Property</button>
-          <button className="btn btn-outline">Explore Other Kezoi Stays</button>
+          <button className="btn btn-primary" onClick={onOpenBooking}>Check availability</button>
         </div>
       </div>
     </section>

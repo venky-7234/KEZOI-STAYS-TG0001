@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function CheckInInfo({ property }) {
+export default function CheckInInfo({ property, onOpenBooking }) {
   return (
     <div className="policy-block">
       <h2 className="policy-block-title">Check-In details</h2>

@@ -17,7 +17,7 @@ const iconMap = {
 
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
-export default function AmenitiesSection({ amenities }) {
+export default function AmenitiesSection({ amenities, onOpenBooking }) {
   const [activeTab, setActiveTab] = useState(0);
   const { ref, isVisible } = useScrollReveal();
 
