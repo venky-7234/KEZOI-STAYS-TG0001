@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Bed, Bath, Coffee, Wifi, Car } from 'lucide-react';
+import { Users, Bed, Bath, Coffee, Wifi, Car, Snowflake, Tv, WashingMachine, ArrowUpToLine, ShieldCheck, Sparkles } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function PropertySummary({ property }) {
@@ -39,6 +39,12 @@ export default function PropertySummary({ property }) {
                 <Car className="summary-icon" size={28} strokeWidth={1.5} />
                 <span className="summary-label">Free Parking</span>
               </div>
+              <div className="summary-item"><Snowflake className="summary-icon" size={28} strokeWidth={1.5} /><span className="summary-label">Air Conditioning</span></div>
+              <div className="summary-item"><Tv className="summary-icon" size={28} strokeWidth={1.5} /><span className="summary-label">TV</span></div>
+              <div className="summary-item"><WashingMachine className="summary-icon" size={28} strokeWidth={1.5} /><span className="summary-label">Washer</span></div>
+              <div className="summary-item"><ArrowUpToLine className="summary-icon" size={28} strokeWidth={1.5} /><span className="summary-label">Elevator</span></div>
+              <div className="summary-item"><ShieldCheck className="summary-icon" size={28} strokeWidth={1.5} /><span className="summary-label">Home Safety</span></div>
+              <div className="summary-item"><Sparkles className="summary-icon" size={28} strokeWidth={1.5} /><span className="summary-label">Daily Housekeeping</span></div>
             </React.Fragment>
           ))}
         </div>

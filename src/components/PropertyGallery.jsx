@@ -1,174 +1,55 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight, ImagePlus, Images, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
-export default function PropertyGallery({ rooms, onOpenBooking }) {
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-  const { ref, isVisible } = useScrollReveal();
+function Photo({ room, src, index, hook = false, onClick }) {
+  const label = room.extraPhotoLabel && index === room.images.length - 1 ? room.extraPhotoLabel : index === 0 ? 'Hook photo' : `Supporting photo ${index}`;
+  return <button type="button" className={`room-photo-slot ${hook ? 'hook' : ''} ${room.naturalAspect ? 'natural-aspect' : ''} ${room.adaptiveAspect ? 'adaptive-aspect' : ''} ${src ? '' : 'placeholder'}`} onClick={onClick} aria-label={`${src ? 'Enlarge' : 'Photo slot for'} ${room.title}, ${label}`}>
+    {src ? <img src={src} alt={`${room.title} — ${label}`} loading="lazy" /> : <><ImagePlus aria-hidden="true" /><span>{label}</span><small>{room.title}</small></>}
+  </button>;
+}
 
-  if (!rooms || rooms.length === 0) return null;
+export default function PropertyGallery({ rooms }) {
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [activePhoto, setActivePhoto] = useState(null);
+  const touchStartX = useRef(null);
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.01, rootMargin: '0px 0px -6% 0px' });
+  const displayRooms = rooms;
+  const preview = useMemo(() => {
+    const previewRoomTitles = ['Living room', 'Dining', 'Bedroom 1', 'Bedroom 2', 'Bedroom 3'];
+    return previewRoomTitles.map(title => {
+      const room = displayRooms.find(item => item.title === title);
+      return room ? { room, src: room.images[0], index: 0 } : null;
+    }).filter(Boolean);
+  }, [displayRooms]);
 
-  const openLightbox = (index) => {
-    setCurrentImageIndex(index);
-    setLightboxOpen(true);
+  useEffect(() => {
+    if (!galleryOpen && !activePhoto) return undefined;
+    const close = event => {
+      if (event.key !== 'Escape') return;
+      if (activePhoto) setActivePhoto(null);
+      else setGalleryOpen(false);
+    };
     document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', close);
+    return () => { document.body.style.overflow = ''; document.removeEventListener('keydown', close); };
+  }, [galleryOpen, activePhoto]);
+
+  if (!rooms?.length) return null;
+  const activeImages = activePhoto?.room.images.filter(Boolean) || [];
+  const showAdjacentPhoto = direction => {
+    if (activeImages.length < 2) return;
+    const currentIndex = activeImages.indexOf(activePhoto.src);
+    const nextIndex = (currentIndex + direction + activeImages.length) % activeImages.length;
+    setActivePhoto({ room: activePhoto.room, src: activeImages[nextIndex], index: nextIndex });
   };
-
-  const closeLightbox = () => {
-    setLightboxOpen(false);
-    document.body.style.overflow = 'auto';
-  };
-
-  const nextImage = (e) => {
-    if (e) e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev === rooms.length - 1 ? 0 : prev + 1));
-  };
-
-  const prevImage = (e) => {
-    if (e) e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev === 0 ? rooms.length - 1 : prev - 1));
-  };
-
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    });
-  };
-
-  const onTouchMove = (e) => {
-    setTouchEnd({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    });
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distanceX = touchStart.x - touchEnd.x;
-    const distanceY = touchStart.y - touchEnd.y;
-    
-    // Only trigger horizontal swipe if X distance is greater than Y distance
-    // This allows native vertical scrolling for the description text
-    if (Math.abs(distanceX) > Math.abs(distanceY)) {
-      const isLeftSwipe = distanceX > minSwipeDistance;
-      const isRightSwipe = distanceX < -minSwipeDistance;
-
-      if (isLeftSwipe) {
-        nextImage();
-      } else if (isRightSwipe) {
-        prevImage();
-      }
-    }
-  };
-
-  const currentRoom = rooms[currentImageIndex];
-
-  return (
-    <section 
-      ref={ref} 
-      className={`gallery-section ${isVisible ? 'animate-fade-up' : 'pre-animate'}`}
-    >
-      <div className="container">
-        <h2 className="section-title">Property Gallery</h2>
-        <div className="gallery-layout">
-          {/* Hook Image */}
-          <div 
-            className="gallery-hook-item"
-            onClick={() => openLightbox(0)}
-          >
-            <img src={rooms[0].image} alt={rooms[0].title} />
-            <div className="gallery-overlay-hint">
-              <span className="view-all-text">View Gallery</span>
-            </div>
-          </div>
-
-          {/* Grid of remaining images */}
-          <div className="gallery-grid-remaining">
-            {rooms.slice(1, 5).map((room, index) => {
-              const actualIndex = index + 1;
-              return (
-                <div 
-                  key={actualIndex} 
-                  className="gallery-grid-item"
-                  onClick={() => openLightbox(actualIndex)}
-                >
-                  <img src={room.image} alt={room.title} />
-                  {index === 3 && rooms.length > 5 && (
-                    <div className="gallery-overlay">
-                      <span className="view-all-text">+{rooms.length - 5} Photos</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {lightboxOpen && createPortal(
-        <div className="lightbox" onClick={closeLightbox}>
-          <button className="lightbox-close" onClick={closeLightbox}>
-            <X size={32} strokeWidth={1.5} />
-          </button>
-          
-          <div 
-            className="lightbox-content-wrapper" 
-            onClick={(e) => e.stopPropagation()}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            <button className="lightbox-nav lightbox-prev" onClick={prevImage}>
-              <ChevronLeft size={32} strokeWidth={1.5} />
-            </button>
-            
-            <div className="lightbox-inner">
-              <div className="lightbox-image-container">
-                <img 
-                  src={currentRoom.image} 
-                  alt={currentRoom.title} 
-                  className="lightbox-img" 
-                />
-              </div>
-              
-              <div className="lightbox-description">
-                <h3 className="lightbox-title">{currentRoom.title}</h3>
-                <ul className="lightbox-features">
-                  {currentRoom.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="lightbox-feature-item">
-                      <span className="feature-bullet"></span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <div style={{ marginTop: '1.25rem' }}>
-                  <button 
-                    className="btn btn-primary btn-small"
-                    onClick={() => { closeLightbox(); onOpenBooking(); }}
-                    style={{ width: '100%' }}
-                  >
-                    Book OUR RESIDENCE
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <button className="lightbox-nav lightbox-next" onClick={nextImage}>
-              <ChevronRight size={32} strokeWidth={1.5} />
-            </button>
-          </div>
-        </div>,
-        document.body
-      )}
-    </section>
-  );
+  return <section ref={ref} className={`gallery-section landing-gallery ${isVisible ? 'animate-fade-up' : 'pre-animate'}`}>
+    <div className="container"><div className="gallery-heading"><div><span>Take a closer look</span><h2>Property Gallery</h2></div><p>Explore every room and the three balconies connected to the living and bedroom spaces.</p></div>
+      <div className="landing-gallery-grid"><Photo {...preview[0]} hook onClick={() => preview[0]?.src && setActivePhoto(preview[0])} /><div className="landing-gallery-supporting">{preview.slice(1, 5).map(photo => <Photo key={`${photo.room.title}-${photo.index}`} {...photo} onClick={() => photo.src && setActivePhoto(photo)} />)}</div></div>
+      <button type="button" className="gallery-explore-cta" onClick={() => setGalleryOpen(true)}><Images size={19} /><span>Explore full gallery</span><ArrowRight size={18} /></button>
+    </div>
+    {galleryOpen && createPortal(<div className="full-gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="full-gallery-title"><header><div><span>Kezoi Stays · TG-0001</span><h2 id="full-gallery-title">Explore the residence</h2></div><button type="button" aria-label="Close full gallery" onClick={() => setGalleryOpen(false)}><X /></button></header><main>{displayRooms.map(room => <article className="full-gallery-room" key={room.title}><div className="full-gallery-room-copy"><span>Inside the residence</span><h3>{room.title}</h3><p>{room.description}</p>{room.includes && <strong>{room.includes}</strong>}</div><div className={`room-photo-grid ${room.images.length === 6 && room.images.every(Boolean) ? 'six-cards' : ''} ${room.images.length === 3 && room.images.every(Boolean) ? 'three-cards' : ''}`}>{room.images.map((src, index) => { const photo = { room, src, index }; return <Photo key={index} {...photo} hook={index === 0} onClick={() => src && setActivePhoto(photo)} />; })}</div></article>)}</main></div>, document.body)}
+    {activePhoto && createPortal(<div className="lightbox room-lightbox" role="dialog" aria-modal="true" aria-label={`${activePhoto.room.title} enlarged photo`} onClick={() => setActivePhoto(null)} onTouchStart={event => { touchStartX.current = event.touches[0].clientX; }} onTouchEnd={event => { if (touchStartX.current == null) return; const distance = event.changedTouches[0].clientX - touchStartX.current; touchStartX.current = null; if (Math.abs(distance) > 45) showAdjacentPhoto(distance < 0 ? 1 : -1); }}><button type="button" className="lightbox-close" aria-label="Close enlarged photo" onClick={() => setActivePhoto(null)}><X /></button>{activeImages.length > 1 && <><button type="button" className="room-lightbox-arrow previous" aria-label="Previous photo" onClick={event => { event.stopPropagation(); showAdjacentPhoto(-1); }}><ChevronLeft /></button><button type="button" className="room-lightbox-arrow next" aria-label="Next photo" onClick={event => { event.stopPropagation(); showAdjacentPhoto(1); }}><ChevronRight /></button></>}<figure onClick={event => event.stopPropagation()}><img src={activePhoto.src} alt={`${activePhoto.room.title} — enlarged photo`} /><figcaption>{activePhoto.room.title}</figcaption><div className="room-lightbox-dots" aria-label={`${activePhoto.room.title} photo navigation`}>{activeImages.map((src, index) => <button type="button" key={src} className={src === activePhoto.src ? 'active' : ''} aria-label={`View ${activePhoto.room.title} photo ${index + 1}`} aria-current={src === activePhoto.src ? 'true' : undefined} onClick={() => setActivePhoto({ room: activePhoto.room, src, index })} />)}</div></figure></div>, document.body)}
+  </section>;
 }

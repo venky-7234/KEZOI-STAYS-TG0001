@@ -1,12 +1,15 @@
 import React from 'react';
 import { Phone } from 'lucide-react';
 import { WhatsAppIcon } from './BrandIcons';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function GuestSupport() {
+  const { ref, isVisible } = useScrollReveal();
+
   return (
-    <section className="support-section">
+    <section ref={ref} className={`support-section ${isVisible ? 'animate-fade-up' : 'pre-animate'}`}>
       <div className="container">
-        <div className="support-card animate-fade-up">
+        <div className="support-card">
           <h2 className="support-title">Need Anything During Your Stay?</h2>
           <p className="support-desc">Our dedicated concierge is available 24/7 to ensure your stay is flawless.</p>
           

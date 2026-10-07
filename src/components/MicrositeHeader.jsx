@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
 import logo from '../assets/kezoi_logo-01.svg';
 import watermarkIcon from '../assets/kezoi_icon-02.svg';
 import { InstagramIcon } from './BrandIcons';
@@ -87,12 +87,22 @@ export default function MicrositeHeader({ propertyCode, isScrolled, onOpenBookin
                   }}
                 />
                 <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
+                  <div className="mobile-menu-signature" aria-label="Curated for elevated living">
+                    <p>Curated for elevated living</p>
+                    <div className="signature-ornament" aria-hidden="true">
+                      <span />
+                      <i />
+                      <b />
+                      <i />
+                      <span />
+                    </div>
+                  </div>
                   <button
-                    className="dropdown-item"
+                    className="dropdown-item mobile-menu-book"
                     onClick={() => { onOpenBooking(); setMenuOpen(false); }}
-                    style={{ backgroundColor: 'var(--color-gold)', color: '#0f3d34', fontWeight: 'bold' }}
                   >
-                    ✨ Book Now
+                    <span><small>Plan your stay</small>Book Now</span>
+                    <i><ArrowUpRight size={20} /></i>
                   </button>
                   <a 
                     href="https://instagram.com/kezoistays" 
