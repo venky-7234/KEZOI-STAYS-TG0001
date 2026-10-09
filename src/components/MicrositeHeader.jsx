@@ -13,12 +13,15 @@ export default function MicrositeHeader({ propertyCode, isScrolled, onOpenBookin
     };
 
     document.addEventListener('keydown', closeOnEscape);
-    if (menuOpen && window.matchMedia('(max-width: 768px)').matches) {
+    const isMobileMenuOpen = menuOpen && window.matchMedia('(max-width: 768px)').matches;
+    document.body.classList.toggle('mobile-menu-open', isMobileMenuOpen);
+    if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('keydown', closeOnEscape);
+      document.body.classList.remove('mobile-menu-open');
       document.body.style.overflow = '';
     };
   }, [menuOpen]);

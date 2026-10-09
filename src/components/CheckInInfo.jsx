@@ -1,38 +1,23 @@
 import React from 'react';
 
-export default function CheckInInfo({ property, onOpenBooking }) {
+export default function CheckInInfo() {
   return (
-    <div className="policy-block">
-      <h2 className="policy-block-title">Check-In details</h2>
-      
-      <div className="checkin-times">
-        <div className="time-box">
-          <span className="time-label">Check-In</span>
-          <span className="time-value">{property.checkIn}</span>
-        </div>
-        <div className="time-box">
-          <span className="time-label">Check-Out</span>
-          <span className="time-value">{property.checkOut}</span>
-        </div>
+    <div className="policy-block stay-guide">
+      <span className="policy-eyebrow">Before You Settle In</span>
+      <div className="settle-times" aria-label="Check-in and check-out times">
+        <div><span>Check-in</span><strong>2:00 PM</strong></div>
+        <div><span>Check-out</span><strong>11:00 AM</strong></div>
       </div>
-
-      <div className="policy-info-grid">
-        <div className="policy-info-item">
-          <span className="policy-info-label">Check-in method</span>
-          <span className="policy-info-value">Smart lock with unique access code.</span>
-        </div>
-        <div className="policy-info-item">
-          <span className="policy-info-label">Guest ID verification</span>
-          <span className="policy-info-value">Government-issued ID required prior to arrival.</span>
-        </div>
-        <div className="policy-info-item">
-          <span className="policy-info-label">Early check-in</span>
-          <span className="policy-info-value">Subject to availability. Please request in advance.</span>
-        </div>
-        <div className="policy-info-item">
-          <span className="policy-info-label">Late checkout</span>
-          <span className="policy-info-value">Additional charges apply after {property.checkOut}.</span>
-        </div>
+      <ul className="settle-copy">
+        <li>Smart-lock access makes arriving easy.</li>
+        <li>A valid government-issued ID is required before check-in.</li>
+        <li>Early check-in and late check-out are subject to availability and applicable charges.</li>
+        <li>Please respect the home and care for the things around you.</li>
+        <li>Please help us keep the surroundings peaceful.</li>
+        <li>Smoking is permitted on the balconies only.</li>
+      </ul>
+      <div className="settle-signature">
+        <span>Come as you are. Feel at home.</span>
       </div>
     </div>
   );

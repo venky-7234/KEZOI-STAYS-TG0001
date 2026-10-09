@@ -30,9 +30,22 @@ export default function AmenitiesSection({ amenities, onOpenBooking }) {
   const [activeTab, setActiveTab] = useState(0);
   const tabsRef = useRef(null);
   const { ref, isVisible } = useScrollReveal({ threshold: 0.01, rootMargin: '0px 0px -6% 0px' });
-  const scrollTabs = direction => tabsRef.current?.scrollBy({ left: direction * 280, behavior: 'smooth' });
 
   if (!amenities || amenities.length === 0) return null;
+
+  const selectTab = index => {
+    const nextIndex = (index + amenities.length) % amenities.length;
+    setActiveTab(nextIndex);
+    window.requestAnimationFrame(() => {
+      const wrapper = tabsRef.current;
+      const button = wrapper?.querySelector(`[data-tab-index="${nextIndex}"]`);
+      if (!wrapper || !button) return;
+      wrapper.scrollTo({
+        left: button.offsetLeft - (wrapper.clientWidth - button.offsetWidth) / 2,
+        behavior: 'smooth',
+      });
+    });
+  };
 
   return (
     <section ref={ref} className={`amenities-section ${isVisible ? 'animate-fade-up' : 'pre-animate'}`}>
@@ -40,21 +53,22 @@ export default function AmenitiesSection({ amenities, onOpenBooking }) {
         <h2 className="section-title">Amenities</h2>
         
         <div className="amenities-tabs-shell">
-          <button className="amenities-scroll-btn previous" type="button" aria-label="Show previous amenity categories" onClick={() => scrollTabs(-1)}><ChevronLeft /></button>
+          <button className="amenities-scroll-btn previous" type="button" aria-label="Show previous amenity category" onClick={() => selectTab(activeTab - 1)}><ChevronLeft /></button>
           <div className="amenities-tabs-wrapper" ref={tabsRef}>
             <div className="amenities-tabs">
               {amenities.map((category, idx) => (
                 <button
                   key={idx}
+                  data-tab-index={idx}
                   className={`amenity-tab-btn ${activeTab === idx ? 'active' : ''}`}
-                  onClick={() => setActiveTab(idx)}
+                  onClick={() => selectTab(idx)}
                 >
                   {category.title}
                 </button>
               ))}
             </div>
           </div>
-          <button className="amenities-scroll-btn next" type="button" aria-label="Show more amenity categories" onClick={() => scrollTabs(1)}><ChevronRight /></button>
+          <button className="amenities-scroll-btn next" type="button" aria-label="Show next amenity category" onClick={() => selectTab(activeTab + 1)}><ChevronRight /></button>
         </div>
 
         <div className="amenities-content animate-fade-in" key={activeTab}>
