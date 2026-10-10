@@ -4,7 +4,7 @@ import logo from '../assets/kezoi_logo-01.svg';
 import watermarkIcon from '../assets/kezoi_icon-02.svg';
 import { InstagramIcon } from './BrandIcons';
 
-export default function MicrositeHeader({ propertyCode, isScrolled, onOpenBooking }) {
+export default function MicrositeHeader({ propertyCode: _propertyCode, isScrolled, onOpenBooking }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {

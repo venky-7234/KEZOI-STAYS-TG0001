@@ -1,4 +1,30 @@
-# React + Vite
+# Kezoi Stays TG-0001
+
+React/Vite landing page and public stay-enquiry flow for property TG-0001.
+
+## Environment
+
+The repository includes development and production mode values. For a local override, copy `.env.example` to `.env.local`. The only required browser variable is:
+
+```text
+VITE_KEZOI_API_BASE_URL=https://api.kezoistays.com
+```
+
+Never add service tokens, database credentials, JWT secrets, or other server credentials to a `VITE_` variable.
+
+## Secure identity-document handoff
+
+The public handoff route is `/TG-0001/identity-upload?enquiry_id=...&token=...`. The enquiry ID and short-lived token are held only in memory and removed from the address bar after the page loads.
+
+## Commands
+
+```text
+npm test
+npm run lint
+npm run build
+```
+
+## Vite notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 

@@ -3,12 +3,12 @@ import { CalendarDays, Check, ChevronLeft, ChevronRight, FileCheck2, Minus, Plus
 import PhoneInput, { isValidPhoneNumber, parsePhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { isBlockedCalendarDate, toLocalDateKey } from '../utils/dates.js';
+import { API_BASE_URL, getProperties, getQuote, getUnavailableDates } from '../utils/api.js';
+import { formatMoney, hasGstSnapshot, quoteInputKey, validateIdentityFile } from '../utils/quote.js';
 
-const API = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const asDate = s => s ? new Date(`${s}T00:00:00`) : null;
 const today = () => toLocalDateKey(new Date());
 const dateLabel = s => asDate(s)?.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) || 'Select date';
-const money = (n, c = 'INR') => new Intl.NumberFormat('en-IN', { style: 'currency', currency: c, maximumFractionDigits: 0 }).format(Number(n || 0));
 
 function Month({ value, start, end, blocked, mode, onSelect }) {
   const first = new Date(value.getFullYear(), value.getMonth(), 1);
@@ -28,9 +28,23 @@ function Counter({ title, hint, value, min, max, onChange }) {
 
 function Price({ quote }) {
   if (!quote) return <p className="quote-placeholder">Choose valid dates to see the backend-calculated price.</p>;
-  if (quote.mobileDiscountApplied) return <div className="price-card mobile-discount-card"><div className="actual-price"><span>Actual price</span><span>{money(quote.actualPrice, quote.currency)}</span></div><div><span>Your discount ({quote.discountPercentage}%)</span><span className="discount-amount">−{money(quote.discountForYou, quote.currency)}</span></div><div className="price-total final-price"><strong>Price for you</strong><strong>{money(quote.finalAmount, quote.currency)}</strong></div></div>;
-  const rows = [[`${money(quote.nightlyRate, quote.currency)} × ${quote.nights} night${quote.nights === 1 ? '' : 's'}`, quote.subtotal], quote.cleaningFee != null && ['Cleaning fee', quote.cleaningFee], quote.taxes != null && ['Taxes', quote.taxes], Number(quote.discount) > 0 && ['Discount', -quote.discount]].filter(Boolean);
-  return <div className="price-card">{rows.map(([name, amount]) => <div key={name}><span>{name}</span><span>{amount < 0 ? `−${money(-amount, quote.currency)}` : money(amount, quote.currency)}</span></div>)}<div className="price-total"><strong>Estimated total</strong><strong>{money(quote.totalAmount, quote.currency)}</strong></div></div>;
+  if (!hasGstSnapshot(quote)) return <div className="booking-error" role="alert"><span>A complete GST quote could not be loaded. Please retry before submitting.</span></div>;
+  const currency = quote.currency || 'INR';
+  return <div className="price-card gst-price-card">
+    <div><span>Number of nights</span><span>{quote.nights}</span></div>
+    <div><span>Base accommodation</span><span>{formatMoney(quote.base_amount, currency)}</span></div>
+    <div><span>Extra guest charges{Number(quote.extra_guests) > 0 ? ` (${quote.extra_guests})` : ''}</span><span>{formatMoney(quote.extra_guest_amount, currency)}</span></div>
+    {quote.discount_amount != null && <div><span>Discount</span><span className="discount-amount">−{formatMoney(quote.discount_amount, currency)}</span></div>}
+    <div><span>Taxable amount</span><span>{formatMoney(quote.taxable_amount, currency)}</span></div>
+    <div><span>CGST ({Number(quote.cgst_rate ?? Number(quote.gst_rate) / 2)}%)</span><span>{formatMoney(quote.cgst_amount, currency)}</span></div>
+    <div><span>SGST ({Number(quote.sgst_rate ?? Number(quote.gst_rate) / 2)}%)</span><span>{formatMoney(quote.sgst_amount, currency)}</span></div>
+    {Number(quote.igst_amount) > 0 && <div><span>IGST ({Number(quote.igst_rate ?? quote.gst_rate)}%)</span><span>{formatMoney(quote.igst_amount, currency)}</span></div>}
+    <div><span>Total GST ({Number(quote.gst_rate)}%)</span><span>{formatMoney(quote.gst_amount, currency)}</span></div>
+    <div className="price-total"><strong>Grand total</strong><strong>{formatMoney(quote.total_amount, currency)}</strong></div>
+    <div><span>Currency</span><span>{currency}</span></div>
+    <div><span>Price basis</span><strong>{quote.price_includes_gst ? 'GST inclusive' : 'GST exclusive'}</strong></div>
+    <p className="quote-reservation-note">This quotation does not reserve or hold the property.</p>
+  </div>;
 }
 
 export default function BookingModal({ isOpen, onClose, property }) {
@@ -43,6 +57,7 @@ export default function BookingModal({ isOpen, onClose, property }) {
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availabilityError, setAvailabilityError] = useState('');
   const [quote, setQuote] = useState(null);
+  const [quoteKey, setQuoteKey] = useState('');
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState('');
   const [formError, setFormError] = useState('');
@@ -57,14 +72,12 @@ export default function BookingModal({ isOpen, onClose, property }) {
   const loadAvailability = async () => {
     setAvailabilityLoading(true); setAvailabilityError(''); setInventory(null); setQuote(null);
     try {
-      const propertyResponse = await fetch(`${API}/api/applications/properties`);
-      const propertyData = await propertyResponse.json().catch(() => ({}));
-      const selected = propertyData.properties?.find(item => item.property_code?.toUpperCase() === property.code.toUpperCase());
-      if (!propertyResponse.ok || !propertyData.success || !selected) throw Error('This property is not available for applications.');
+      const propertyData = await getProperties();
+      const selected = propertyData.properties?.find(item => String(item.id) === '1' || item.property_code?.toUpperCase() === property.code.toUpperCase());
+      if (!selected) throw Error('This property is not available for applications.');
       setPropertyId(String(selected.id));
-      const availabilityResponse = await fetch(`${API}/api/applications/properties/${encodeURIComponent(selected.id)}/unavailable-dates`);
-      const response = await availabilityResponse.json().catch(() => ({}));
-      if (!availabilityResponse.ok || !response.success || !Array.isArray(response.blocked_dates)) throw Error(response.message || 'Availability could not be loaded.');
+      const response = await getUnavailableDates(selected.id);
+      if (!Array.isArray(response.blocked_dates)) throw Error('Availability could not be loaded.');
       const blockedDateSet = new Set(response.blocked_dates);
       setInventory({ blockedDates: [...blockedDateSet], maxGuests: selected.max_guests });
       setForm(v => ({ ...v, checkIn: '', checkOut: '' }));
@@ -111,22 +124,23 @@ export default function BookingModal({ isOpen, onClose, property }) {
     const timer = setTimeout(async () => {
       setQuoteLoading(true); setQuoteError('');
       try {
-        const response = await fetch(`${API}/api/applications/quote`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal, body: JSON.stringify({ property_id: propertyId, check_in: form.checkIn, check_out: form.checkOut, adults: form.adults, children: form.children, infants: form.infants, pets: 0, mobile_number: form.phone, phone_country_code: form.phoneCountry }) });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.success || !data.quote) throw Error(data.message || 'A price could not be calculated for those dates.');
-        setQuote({ nightlyRate: data.quote.base_price_per_night, nights: data.quote.nights, subtotal: data.quote.base_amount, cleaningFee: data.quote.cleaning_fee, taxes: data.quote.taxes, discount: data.quote.discount_amount, totalAmount: data.quote.total_amount, mobileDiscountApplied: data.quote.mobile_discount_applied === true, actualPrice: data.quote.actual_price, discountPercentage: data.quote.discount_percentage, discountForYou: data.quote.discount_for_you, finalAmount: data.quote.final_amount, currency: data.quote.currency || 'INR' });
+        const input = { propertyId, checkIn: form.checkIn, checkOut: form.checkOut, adults: form.adults, children: form.children, infants: form.infants, pets: 0 };
+        const data = await getQuote(propertyId, input, { signal: controller.signal });
+        if (!data.quote || !hasGstSnapshot(data.quote)) throw Error('The backend returned an incomplete GST quotation.');
+        setQuote(data.quote);
+        setQuoteKey(quoteInputKey(input));
       } catch (error) { if (error.name !== 'AbortError') setQuoteError(error.message); }
       finally { if (!controller.signal.aborted) setQuoteLoading(false); }
     }, 250);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [form.checkIn, form.checkOut, form.adults, form.children, form.infants, form.phone, form.phoneCountry, inventory, propertyId]);
+  }, [form.checkIn, form.checkOut, form.adults, form.children, form.infants, inventory, propertyId]);
 
   if (!isOpen) return null;
   const changeGuests = (key, n) => { setQuote(null); setForm(v => ({ ...v, [key]: Math.max(key === 'adults' ? 1 : 0, Math.min(n, maxGuests - (key === 'adults' ? v.children : v.adults))) })); };
   const acceptFile = file => {
     setFormError(''); if (!file) return;
-    if (!['image/jpeg', 'image/png', 'application/pdf'].includes(file.type)) return setFormError('Upload a JPG, PNG, or PDF identity document.');
-    if (file.size > 5 * 1024 * 1024) return setFormError('Identity document must be 5 MB or smaller.');
+    const error = validateIdentityFile(file);
+    if (error) return setFormError(error);
     setForm(v => ({ ...v, idFile: file }));
   };
   const submit = async e => {
@@ -138,14 +152,19 @@ export default function BookingModal({ isOpen, onClose, property }) {
     const referralMobile = isReferral ? form.referralMobile : '';
     if (!inventory || availabilityError) return setFormError('Availability must be loaded before submitting.');
     if (!form.checkIn || !form.checkOut || !rangeIsClear(form.checkIn, form.checkOut)) return setFormError('Please choose available stay dates.');
-    if (!quote) return setFormError('Please wait for the price quote before submitting.');
+    const currentQuoteKey = quoteInputKey({ propertyId, checkIn: form.checkIn, checkOut: form.checkOut, adults: form.adults, children: form.children, infants: form.infants, pets: 0 });
+    if (!quote || quoteKey !== currentQuoteKey || !hasGstSnapshot(quote)) return setFormError('Please wait for a current price and GST quote before submitting.');
     if (!form.phone || !isValidPhoneNumber(form.phone)) return setFormError('Please enter a valid mobile number');
     if (referralName && !referralMobile) { setReferralError('Please enter the reference mobile number.'); return; }
     if (referralMobile && !referralName) { setReferralError('Please enter the reference name.'); return; }
     if (referralMobile && !isValidPhoneNumber(referralMobile)) { setReferralError('Please enter a valid reference mobile number.'); return; }
-    if (!form.idFile) return setFormError('Please upload one identity document.');
+    const fileError = validateIdentityFile(form.idFile);
+    if (fileError) return setFormError(fileError);
     setSubmitting(true);
     try {
+      const latest = await getQuote(propertyId, { checkIn: form.checkIn, checkOut: form.checkOut, adults: form.adults, children: form.children, infants: form.infants, pets: 0 });
+      if (!latest.quote || !hasGstSnapshot(latest.quote)) throw Error('The latest price could not be verified. Please try again.');
+      setQuote(latest.quote);
       const payload = new FormData();
       Object.entries({ property_id: propertyId, application_source: 'TG-0001', check_in: form.checkIn, check_out: form.checkOut, adults: form.adults, children: form.children, infants: form.infants, pets: 0, full_name: form.fullName.trim(), email: form.email.trim(), whatsapp_number: form.phone, phone_country_code: form.phoneCountry, document_type: form.idType, guest_message: form.message.trim() }).forEach(([key, value]) => payload.append(key, value));
       if (form.hearAbout) payload.append('discovery_source', form.hearAbout);
@@ -154,7 +173,7 @@ export default function BookingModal({ isOpen, onClose, property }) {
         payload.append('referral_mobile', parsePhoneNumber(referralMobile)?.number || referralMobile);
       }
       payload.append('identity_document', form.idFile);
-      const response = await fetch(`${API}/api/applications/submit`, { method: 'POST', headers: { 'Idempotency-Key': requestKey }, body: payload });
+      const response = await fetch(`${API_BASE_URL}/api/applications/submit`, { method: 'POST', headers: { 'Idempotency-Key': requestKey }, body: payload });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success || !data.application) {
         if (response.status === 400 && !/referral/i.test(`${data.message || ''} ${data.error || ''}`) && /mobile|phone|whatsapp/i.test(`${data.message || ''} ${data.error || ''}`)) throw Error('Please enter a valid mobile number');
@@ -166,6 +185,8 @@ export default function BookingModal({ isOpen, onClose, property }) {
 
   const calendar = picker && <div className="calendar-popover" ref={pickerRef} role="dialog" aria-label={`Choose ${picker} date`}><div className="calendar-nav"><button type="button" aria-label="Previous month" disabled={month.getFullYear() === new Date().getFullYear() && month.getMonth() === new Date().getMonth()} onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}><ChevronLeft /></button><strong>{picker === 'checkin' ? 'Select check-in' : 'Select check-out'}</strong><button type="button" aria-label="Next month" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}><ChevronRight /></button></div><Month value={month} start={form.checkIn} end={form.checkOut} blocked={blocked} mode={picker} onSelect={selectDate} /><div className="calendar-legend"><span><i className="available" /> Available</span><span><i className="booked" /> Booked</span></div></div>;
   const title = (icon, name, text) => <div className="section-title">{icon}<div><h3>{name}</h3><p>{text}</p></div></div>;
+  const currentQuoteKey = quoteInputKey({ propertyId, checkIn: form.checkIn, checkOut: form.checkOut, adults: form.adults, children: form.children, infants: form.infants, pets: 0 });
+  const currentQuote = quoteKey === currentQuoteKey ? quote : null;
 
   return <div className="booking-modal-overlay" onMouseDown={e => e.target === e.currentTarget && onClose()}><section className="booking-modal-card" role="dialog" aria-modal="true" aria-labelledby="booking-title"><header className="booking-header"><div><span>Kezoi Stays · {property.code}</span><h2 id="booking-title">{reference ? 'Application received' : 'Apply for your stay'}</h2></div><button type="button" onClick={onClose} aria-label="Close application form"><X /></button></header>
     {reference ? <div className="booking-success"><i><Check /></i><h3>Application submitted successfully</h3><p>Our team will review your request and contact you. Your stay is not confirmed until approval.</p><div><span>Application reference</span><strong>{reference}</strong></div><button className="booking-primary" onClick={onClose}>Done</button></div> : <form onSubmit={submit}><main className="booking-body">
@@ -173,8 +194,8 @@ export default function BookingModal({ isOpen, onClose, property }) {
       <section className="form-section">{title(null, 'Guest contact information', 'Details for the lead guest')}<div className="booking-fields"><label>Full name <b>*</b><input required autoComplete="name" value={form.fullName} onChange={e => setForm(v => ({ ...v, fullName: e.target.value }))} /></label><label>Email <b>*</b><input required type="email" autoComplete="email" value={form.email} onChange={e => setForm(v => ({ ...v, email: e.target.value }))} /></label><label className="phone-field">Mobile / WhatsApp number <b>*</b><PhoneInput international defaultCountry="IN" countryCallingCodeEditable={false} value={form.phone} onCountryChange={country => setForm(v => ({ ...v, phoneCountry: country || 'IN' }))} onChange={phone => setForm(v => ({ ...v, phone: phone || '' }))} /></label></div></section>
       <section className="form-section">{title(<FileCheck2 />, 'Identity-document upload', 'One valid document for the lead guest')}<div className="identity-grid"><label className="identity-type">Document type <b>*</b><select required value={form.idType} onChange={e => setForm(v => ({ ...v, idType: e.target.value }))}><option value="AADHAAR_CARD">Aadhaar card</option><option value="PASSPORT">Passport</option><option value="DRIVING_LICENSE">Driving License</option></select></label><label className={`identity-dropzone ${dragging ? 'is-dragging' : ''} ${form.idFile ? 'has-file' : ''}`} onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); acceptFile(e.dataTransfer.files[0]); }}><input required type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => acceptFile(e.target.files[0])} />{form.idFile ? <><FileCheck2 size={25} /><strong>{form.idFile.name}</strong><span>Click or drop a file to replace it</span></> : <><UploadCloud size={27} /><strong>Upload identity document *</strong><span>JPG, PNG or PDF · Max 5 MB</span></>}</label></div><p className="identity-note">Your document is used only for booking verification.</p></section>
       <section className="form-section referral-section">{title(null, 'How did you hear about Kezoi Stays?', 'Optional')}<label className="discovery-source" htmlFor="discovery-source">Select a source<select id="discovery-source" value={form.hearAbout} onChange={e => { setReferralError(''); setForm(v => ({ ...v, hearAbout: e.target.value })); }}><option value="">Choose an option</option><option value="INSTAGRAM">Instagram</option><option value="FACEBOOK">Facebook</option><option value="X">X</option><option value="YOUTUBE">YouTube</option><option value="REFERRAL">Friend or referral</option><option value="OTHER">Other</option></select></label>{form.hearAbout === 'REFERRAL' && <><p className="referral-helper">Enter the details of the person who referred you.</p><div className="booking-fields"><label htmlFor="referral-name">Reference name <b>*</b><input required id="referral-name" type="text" autoComplete="name" placeholder="Enter the referrer’s name" value={form.referralName} onChange={e => { setReferralError(''); setForm(v => ({ ...v, referralName: e.target.value })); }} /></label><label className="phone-field" htmlFor="referral-mobile">Reference mobile number <b>*</b><PhoneInput id="referral-mobile" international defaultCountry="IN" countryCallingCodeEditable={false} placeholder="Enter the referrer’s mobile number" value={form.referralMobile} onCountryChange={country => setForm(v => ({ ...v, referralCountry: country || 'IN' }))} onChange={phone => { setReferralError(''); setForm(v => ({ ...v, referralMobile: phone || '' })); }} /></label></div></>}{referralError && <div className="booking-error" role="alert"><span>{referralError}</span></div>}</section>
-      <section className="form-section">{title(null, 'Price summary', 'Pricing is calculated by Kezoi Stays.')}{quoteLoading ? <div className="booking-status"><span className="spinner" /> Calculating price…</div> : quoteError ? <div className="booking-error" role="alert"><span>{quoteError}</span></div> : <Price quote={quote} />}</section>
-      <section className="form-section">{title(null, 'Message and submission', 'Add an optional request before submitting.')}{form.hearAbout === 'REFERRAL' && form.referralName.trim() && form.referralMobile && <div className="referral-review"><span>Referral details</span><strong>{form.referralName.trim()}</strong><small>{form.referralMobile}</small></div>}<label className="message-field">Message or special request <span>(optional)</span><textarea rows="3" value={form.message} onChange={e => setForm(v => ({ ...v, message: e.target.value }))} /></label>{formError && <div className="booking-error" role="alert"><span>{formError}</span></div>}<p className="payment-note">You won’t be charged now. Payment is requested after approval.</p><button type="submit" className="booking-primary submit-application" disabled={submitting || availabilityLoading || !inventory}>{submitting ? <><span className="spinner dark" /> Sending application…</> : 'Submit application'}</button></section>
+      <section className="form-section">{title(null, 'Price & GST breakdown', 'Pricing and taxes are calculated by Kezoi Stays.')}{quoteLoading ? <div className="booking-status"><span className="spinner" /> Calculating price…</div> : quoteError ? <div className="booking-error" role="alert"><span>{quoteError}</span></div> : <Price quote={currentQuote} />}</section>
+      <section className="form-section">{title(null, 'Message and submission', 'Add an optional request before submitting.')}{form.hearAbout === 'REFERRAL' && form.referralName.trim() && form.referralMobile && <div className="referral-review"><span>Referral details</span><strong>{form.referralName.trim()}</strong><small>{form.referralMobile}</small></div>}<label className="message-field">Message or special request <span>(optional)</span><textarea rows="3" value={form.message} onChange={e => setForm(v => ({ ...v, message: e.target.value }))} /></label>{formError && <div className="booking-error" role="alert"><span>{formError}</span></div>}<p className="payment-note">You won’t be charged now. Payment is requested after approval.</p><button type="submit" className="booking-primary submit-application" disabled={submitting || availabilityLoading || quoteLoading || !inventory || !currentQuote}>{submitting ? <><span className="spinner dark" /> Sending application…</> : 'Submit application'}</button></section>
     </main></form>}
   </section></div>;
 }

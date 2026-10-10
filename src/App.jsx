@@ -9,10 +9,12 @@ import LocationSection from './components/LocationSection';
 import CheckInInfo from './components/CheckInInfo';
 import MicrositeFooter from './components/MicrositeFooter';
 import BookingModal from './components/BookingModal';
+import IdentityUploadPage from './components/IdentityUploadPage';
 import { PhoneIcon, WhatsAppIcon } from './components/BrandIcons';
 import { useScrollReveal } from './hooks/useScrollReveal';
+import { getProperties } from './utils/api.js';
 
-const property = {
+const staticProperty = {
   code: "TG-0001",
   name: "TG-0001",
   location: "Manikonda, Hyderabad",
@@ -81,7 +83,39 @@ const property = {
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [property, setProperty] = useState(staticProperty);
+  const [propertyDataState, setPropertyDataState] = useState('loading');
   const { ref: policiesRef, isVisible: policiesVisible } = useScrollReveal();
+
+  useEffect(() => {
+    let active = true;
+    getProperties()
+      .then(data => {
+        if (!active) return;
+        const live = data.properties?.find(item => String(item.id) === '1' || item.property_code?.toUpperCase() === 'TG-0001');
+        if (!live) {
+          setPropertyDataState('empty');
+          return;
+        }
+        setProperty(current => ({
+          ...current,
+          id: String(live.id),
+          code: live.property_code || current.code,
+          name: live.property_name || current.name,
+          propertyType: live.property_type || current.propertyType,
+          guests: Number(live.max_guests || current.guests),
+          bedrooms: Number(live.bedrooms || current.bedrooms),
+          bathrooms: Number(live.bathrooms || current.bathrooms),
+          basePrice: live.base_price,
+          currency: live.currency || 'INR',
+        }));
+        setPropertyDataState('ready');
+      })
+      .catch(error => {
+        if (active && error.name !== 'AbortError') setPropertyDataState('error');
+      });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -100,9 +134,17 @@ function App() {
     setIsBookingOpen(false);
   };
 
+  if (/\/identity-upload\/?$/.test(window.location.pathname)) return <IdentityUploadPage />;
+
   return (
     <div className="app-container">
       <MicrositeHeader propertyCode={property.code} isScrolled={isScrolled} onOpenBooking={handleOpenBooking} />
+
+      {propertyDataState !== 'ready' && <div className={`property-data-notice ${propertyDataState}`} role="status">
+        {propertyDataState === 'loading' && 'Loading current property details…'}
+        {propertyDataState === 'empty' && 'Current property details are temporarily unavailable. Displaying the published property information.'}
+        {propertyDataState === 'error' && 'Live property details could not be refreshed. Displaying the published property information.'}
+      </div>}
 
       <div id="overview">
         <PropertyHero property={property} onOpenBooking={handleOpenBooking} />

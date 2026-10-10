@@ -2330,6 +2330,7 @@ a {
 .message-field textarea{box-sizing:border-box;width:100%;margin:6px 0 12px;padding:11px 12px;border:1px solid rgba(182,145,72,.35);border-radius:8px;background:#16584a;color:#fff;font:inherit;resize:vertical}
 .message-field textarea:focus{outline:0;border-color:#d6b66e;box-shadow:0 0 0 2px rgba(182,145,72,.16)}
 .quote-placeholder{margin:0;color:rgba(255,255,255,.55);font-size:.82rem}
+.gst-price-card .discount-amount{color:#e1bf7b}.quote-reservation-note{margin:12px 0 0;padding-top:11px;border-top:1px solid rgba(182,145,72,.25);color:rgba(255,255,255,.62);font-size:.76rem;line-height:1.45}
 .submit-application{width:100%;margin-top:10px;min-height:46px}
 .booking-status{display:flex;align-items:center;justify-content:center;gap:8px;padding:22px}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#e1bf7b;border-radius:50%;animation:booking-spin .7s linear infinite}.spinner.dark{border-color:rgba(9,44,37,.25);border-top-color:#092c25}
@@ -2339,6 +2340,12 @@ a {
   .calendar-popover{position:fixed;z-index:10001;left:0;right:0;top:auto;bottom:0;width:100%;padding:18px 18px calc(18px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;background:#0a3028;box-shadow:0 -14px 50px rgba(0,0,0,.65)}
   .identity-grid,.booking-fields{grid-template-columns:1fr}.booking-fields .phone-field{grid-column:auto}.identity-dropzone{min-height:92px}
 }
+
+.property-data-notice{position:fixed;z-index:90;top:76px;left:50%;transform:translateX(-50%);width:min(620px,calc(100% - 28px));padding:9px 14px;border:1px solid rgba(182,145,72,.35);border-radius:8px;background:#0a3028;color:#ead7ad;text-align:center;font-size:.76rem;box-shadow:0 8px 24px rgba(0,0,0,.22)}
+.identity-page{min-height:100dvh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#16584a 0,#0a3028 48%,#061e19 100%);color:#fdfbf7}
+.identity-page-card{width:min(540px,100%);box-sizing:border-box;padding:34px;border:1px solid rgba(182,145,72,.45);border-radius:18px;background:#0f3d34;box-shadow:0 30px 90px rgba(0,0,0,.48)}
+.identity-page-brand{margin-bottom:28px;color:#dabe86;font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}.identity-page-icon{color:#dabe86}.identity-page-card h1{margin:12px 0 8px;font:500 1.8rem var(--font-serif)}.identity-page-card>p,.identity-page-success p{color:rgba(255,255,255,.68);line-height:1.65}.identity-page-card form{display:grid;gap:16px;margin-top:24px}.identity-page-card form>label:not(.identity-dropzone){color:#dabe86;font-size:.8rem}.identity-page-card select{box-sizing:border-box;width:100%;margin-top:7px;padding:12px;border:1px solid rgba(182,145,72,.4);border-radius:8px;background:#16584a;color:#fff}.identity-page-card .identity-dropzone{min-height:132px}.identity-page-card .booking-primary{width:100%;min-height:46px}.identity-page-success{text-align:center}.identity-page-success i{display:grid;place-items:center;width:62px;height:62px;margin:auto;border-radius:50%;background:#b69148;color:#092c25}
+@media(max-width:600px){.identity-page{padding:0}.identity-page-card{min-height:100dvh;padding:28px 20px;border:0;border-radius:0}}
 
 /* Landing gallery preview and full room gallery */
 .landing-gallery{padding:4rem 0}
